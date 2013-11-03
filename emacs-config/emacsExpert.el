@@ -1,4 +1,4 @@
-;;Last Modified: 2013-11-03 22:35:23.
+;;Last Modified: 2013-11-03 23:42:42.
 (add-hook  'write-file-hooks  (lambda ()  (set-lastmodified-tag)))
 (defun set-lastmodified-tag ()  (interactive) 
   (let ((tostr (concat ";;Last Modified: " 
@@ -93,11 +93,14 @@
 ;;             (define-key LaTeX-mode-map (kbd "TAB") 'TeX-complete-symbol))
 ;; 	  )
 
+(setq LaTeX-command "xelatex")
+(setq TeX-master "weka.tex")
 
-(defun insert-paragraph () 
+
+(defun insert-paragraph ()
   "insert '\par' when no this ,else delete it"
   (interactive)
-  (save-excursion
+  (save-buffer
     (beginning-of-line)
     (if (re-search-forward "^ *\\\\par *" (line-end-position) t)
 	(let ((myStr (thing-at-point 'line)))
@@ -118,7 +121,7 @@
 	     (define-key LaTeX-mode-map (kbd "TAB") 'TeX-complete-symbol)
 	     ))
 (defun insert-semicolon () 
-  "inset two ;"
+  "inset two ; before point"
   (interactive)
   (save-excursion
     (beginning-of-line)
