@@ -1,4 +1,4 @@
-;;Last Modified: 2013-11-04 10:24:03.
+;;Last Modified: 2013-11-04 11:38:21.
 
 (add-hook  'write-file-hooks  (lambda ()  (set-lastmodified-tag)))
 (defun set-lastmodified-tag ()  (interactive) 
@@ -149,3 +149,4 @@
 ))))
 (font-lock-add-keywords 'emacs-lisp-mode '("[(]" "[)]"))
 ;;("\\<\\(and\\|or\\|not\\)\\>" . font-lock-keyword-face)
+(setq vc-handled-backends nil);;禁止在emacs中使用版本设置
