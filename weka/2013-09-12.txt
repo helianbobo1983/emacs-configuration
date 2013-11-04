@@ -1,0 +1,15 @@
+学习shell编程
+（1）标准输入stdin，标准输出stdout，标准错误stderr，其文件描述符分别为0,1,2。>默认为将标准输出（stdout）重定向到其它地方，2>&1表示将标准错误输出（stderr）重定向到标准输出（stdout）。&>file表示把标准输出（stdout）和标准错误（stderr）都输出到文件file中。
+（2）let命令的替代表示形式是：((算术表达式))。例如，let ″j=i*6+2″等价于((j=i*6+2))。如果表达式的值是非0，那么返回的状态值是0；否则，返回的状态值是1。当表达式中有Shell的特殊字符时，必须用双引号将其括起来。例如,let ″val=a|b″。如果不括起来，Shell会把命令行let val=a|b中的“|”看成管道符号，将其左右两边看成不同的命令，因此，将无法正确执行。 
+（3）ffmpeg -ss "$OFFSET" -t "$CHUNK_LEN"  -i "$IN_FILE"  -an -b 512k -minrate 512k  -y "$OUT_FILE"
+用于将起始时间为"$OFFSET"，时间长度为"$CHUNK_LEN"的视频文件切割成一个小视频文件，-an用于告诉ffmpeg忽略视频文件的音频，-b告诉ffmpeg的输出bitrate，-y表示覆盖输出目录下的同名文件。
+ffmpeg -ss "$OFFSET" -t "$CHUNK_LEN"  -i "$IN_FILE"  -vcodec copy -an -b 512k -minrate 512k  -y "$OUT_FILE"，使用后，输出的小视频文件的比特率不是固定的，这是因为-vcodec copy的使用，使得-b 512k选项被忽略了。-vcodec copy告诉FFmpeg输出与原视频文件相同的比特流。使用copy选项，分割Discovery文件耗时8分钟，不使用copy选项，分割Discovery文件，耗时22分钟。
+
+
+
+
+
+
+
+
+

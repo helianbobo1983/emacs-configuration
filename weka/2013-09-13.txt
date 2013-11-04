@@ -1,0 +1,39 @@
+Java客户端访问hdfs
+
+Java客户端指的是，非hadoop集群上的节点访问hdfs。
+一, HDSF添加用户并设置权限
+HDFS为每个用户设置一定的权限,当使用Java Client端访问hdfs时,实际上是以某个用户来访问hdfs，hdfs会检查该用户是否具有相应权限，比如root用户具有对全部文件的读写权限。
+在hdfs上建立用户,并赋予用户权限的过程如下:
+（1）. bin/hadoop fs -mkdir /user (如果没有/user目录)
+（2）. bin/hadoop fs -mkdir /user/liubo(建立liubo目录)
+（3）. bin/hadoop fs -chown liubo:liubo /user/liubo
+默认情况下的读写权限为700,也就是说,只有user具备读写权限(hdfs无可执行文件,因此没有必要设置x权限，所以700实际上是600)
+二，在Java客户端访问hdfs中，读取用户名的过程为：最先读取HADOOP_USER_NAME系统环境变量，如果为空，则读取java环境中的HADOOP_USER_NAME，如果仍然为空，则以系统当前的user为默认的用户名。比如我在Ubuntu 12.04下的的用户名是liubo,那么,当没有设置系统环境变量和java环境变量时，Java Client会以liubo这个用户名访问hdfs，假如liubo这个用户没有权限，则执行会出错。
+
+三,设置系统环境变量比较麻烦，更改系统用户更加麻烦，最容易的方式是设置Java环境变量，设置代码为：
+Properties property = System.getProperties();
+property.setProperty("HADOOP_USER_NAME", "root");
+以这种方式，就可以读写hdfs目录下的任何文件了。
+从这里也能看出，hdfs的安全机制十分薄弱，必须依赖于宿主操作系统的安全机制。
+Java客户端访问hdfs代码如下
+
+String dst = "hdfs://192.168.50.75:9000/user/liubo/Discovery.mkv";//hdfs目标文件
+private static void uploadToHdfs(String dst) throws FileNotFoundException,
+			IOException {
+
+		String localSrc = "/mnt/tmp/Discovery.mkv";//本地视频文件
+		InputStream in = new BufferedInputStream(new FileInputStream(localSrc));
+		Configuration conf = new Configuration();
+		System.out.println(conf.toString());
+		FileSystem fs = FileSystem.get(URI.create(dst), conf);
+		OutputStream out = fs.create(new Path(dst), new Progressable() {
+			public void progress() {
+				System.out.print(".");
+			}
+		});
+		IOUtils.copyBytes(in, out, 4096, true);
+	}
+
+
+
+

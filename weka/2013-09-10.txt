@@ -1,0 +1,30 @@
+Ubuntu 12.04下编译ffmpeg
+
+1、安装git。在命令行下执行 sudo apt-get install git-core
+
+2、下载最新版本的ffmpeg。  git clone git://source.ffmpeg.org/ffmpeg.git ffmpeg
+
+3、进入ffmpeg目录下，执行 ./configure 这时可能会提示没有yasm，不能编译汇编。可以下载并安装yasm ， sudo apt-get install yasm .
+也可以在执行./configure时加上参数-disable-yasm 直接执行
+./configure -> make -> make install；会把编译好的文件放到 usr/local/bin 目录下， 如果想改变安装地址，可以在执行configure的时候添加参数--prefix=PREFIX来指定目录
+
+4、执行./configure后会生成config.h文件，
+
+查看#define CONFIG_FFPLAY 0 如果是0表示不能编译出ffplay，一般是因为缺少SDL库，
+
+sudo apt-get install libsdl1.2-dev ；用这个命令安装SDL库
+
+5、再回到步骤3。configure执行之后，执行make，需要等比较长的时间，大约10分钟左右，可以喝杯茶。
+
+6、如果没报错，执行make install，大功告成。
+
+7、尝试使用ffplay播放视频。 命令：ffplay  /mnt/f/Discovery.mkv，播放视频。
+
+
+
+
+
+
+
+
+

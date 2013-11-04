@@ -1,0 +1,97 @@
+\section{关于MapReduce}
+下载\textsl{hadoop-1.2.1}包，然后使用\textsl{ant eclipse}命令，生成eclipse工程文件，在ant编译时，可能出现错误：\textsl{libtoolize: command not found},这是因为没有安装libtool包，使用\textsf{sudo apt-get install libtool}安装它们，这样，应该能生成工程文件。
+\subsection{InputFormat类}
+InputFormat类是Hadoop Map Reduce框架中的基础类之一。该类主要用来定义两件事情：
+\begin{enumerate}[(1)]
+\item 数据分割(Data splits)，生成列表List<InputSplit>;
+\item 记录读取器(Record reader)，负责给执行任务的MapTask提供一个个Key/Value对。
+\end{enumerate}
+WordCount中的TextInputFormat(TextInputFormat --> FileInputFormat --> InputFormat， --> 标识继承关系)，其核心功能是提供了getSplits函数（即数据分割部分，实现过程在FileInputFormat类中）和LineRecordReader类。\par
+数据分割是MapReduce框架中的基础概念之一，它定义了单个Map任务的大小及其所处的DataNode的位置信息。WordCount例子中，仍然是按照块大小（默认情况下，64M）将文本文件分成以64M字节为单位的一个个InputSplit，每个InputSplit将作为分配任务的基本单元，即是MapTask的执行单元。\par
+RecordReader主要负责从输入的hdfs文件（逻辑split，也就是每个MapTask执行的输入数据源）上读取数据并将它们以键值对的形式提交给MapTask（一次Map任务的执行过程称为MapTask，封装于独立的Java Virtual Machine中），RecordReader提供抽象的nextKeyValue方法，用于判断输入InputSplit中是否还有待处理的Key/Value对。\par
+WordCount示例中，RecordReader的具体实现类为LineRecordReader，对任意一个InputSplit，它读取的Start位置并不是该DataBlock的开头，而是跳转到第一行单词的末尾，以第一行的末尾作为读取的Start位置。因此，LineRecordReader不只读取当前的DataBlock数据块，它还会读取InputSplit的下一个DataBlock，直到获得一个完整的单词行，这样就能避免一行单词被两个InputSplit拆分而带来的问题。
+\subsection{OutputFormat类}
+OutputFormat类是Hadoop Map Reduce框架中的基础类之一。该类主要用来定义两件事情：
+\begin{enumerate}[(1)]
+\item 提供RecordWriter，MapReduce作业的输出均由RecordWriter负责，它负责写入一个个Key/Value对，至于写到hdfs还是本地文件系统，或者写入一个还是多个文件，取决于RecordWriter的实现。
+\item 提供OutputCommitter，OutputCommitter负责：作业的初始化（在MapReduce中称为JobSetupTask），作业失败时的清除（JobCleanupTask），任务失败时的清除（TaskCleanupTask）和作业提交（commitJob），它的默认实现是FileOutputCommitter。
+\end{enumerate}
+\subsection{Mapreduce中的两个Mapper}
+MapReduce中存在两种API，旧的API来自于包org.apache.hadoop.mapred，新的API来自于包org.apache.hadoop.mapreduce。新的API有Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>类，调用者通过继承Mapper类，并重载void map(KEYIN key, VALUEIN value, Context context) 函数，以执行map任务。\par
+Context类继承了MapContext<KEYIN,VALUEIN,KEYOUT,VALUEOUT>,是Mapper中核心类，给MapTask,ReduceTask提供包括：
+\begin{itemize}
+\item InputFormat，包含了RecordReader<KEYIN,VALUEIN>，InputSplit等信息
+\item OutputFormat，包含了OutputCommitter，RecordWriter<KEYOUT,VALUEOUT>等信息
+\item StatusReporter,JobID，TaskAttemptID等信息
+\end{itemize}
+\par Context类包括了任务执行时需要的上下文信息, 其中reader负责给Mapper提供K/V对，writer负责写入Mapper或Reducer的计算结果，committer负责Task的一些清理工作，可以更多地与MapReduce执行交互，InputSplit定义了MapTask的输入数据源。\par
+OutputCollector应该是在旧的API中使用比较多，对RecordReader的调用，runNewMapper调用的是inputFormat.createRecordReader(split, taskContext);而runOldMapper调用的是job.getInputFormat().getRecordReader(split, job,reporter)。
+\subsection{对RecordWriter的处理}
+MapTask和ReduceTask都可能会调用RecordWriter，这个输出会写到哪里去呢？如果不存在Reduce任务，那么Map任务的输出当然是由RecordWriter负责写入了。查阅MapTask类的源码，有如下代码：
+\begin{verbatim}
+if (job.getNumReduceTasks() == 0) {
+  output = new NewDirectOutputCollector(taskContext,job,umbilical,reporter);
+} else {
+  output = new NewOutputCollector(taskContext, job, umbilical, reporter);
+}
+\end{verbatim}
+也就是说，如果没有ReduceTask，则RecordWriter对MapTask负责，反之，RecordWriter对ReduceTask负责，NewOutputCollector将负责MapTask的输出，它调用MapOutputBuffer来输出其中间结果，这种情况下，中间结果将写入本地文件系统，避免了写入HDFS带来的较大开销，但这种情况下，中间结果对用户是不可见的。
+
+\subsection{Hadoop中log4j的配置}
+在开发MapReduce作业时，使用System.out.print()方式和将日志输出到本地文件中比较麻烦，因此使用log4j库打印日志。但使用Hadoop库时，自己写的log4j.xml(或log4j.properties)文件会被MapReduce框架覆盖掉，从而不起作用，此时只能使用Hadoop提供的log4j.properties文件。
+\par 为此，修改\$\{HADOOP\_HOME\}/etc/hadoop/目录下的log4j.properties文件，在文件末尾添加如下几句：
+\begin{verbatim}
+log4j.logger.org.jpgExtractor=INFO,jpgExtractor
+log4j.appender.jpgExtractor=org.apache.log4j.FileAppender
+## log4j.appender.jpgExtractor.File=${hadoop.log.dir}/log4j.log
+log4j.appender.jpgExtractor.File=/tmp/log4j.log
+log4j.appender.jpgExtractor.layout=org.apache.log4j.PatternLayout
+log4j.appender.jpgExtractor.layout.ConversionPattern=%d{ABSOLUTE} %-5p [%c{1}] %m%n
+log4j.additivity.org.jpgExtractor=false
+# log4j.appender.jpgExtractor.filter=org.apache.log4j.varia.LevelRangeFilter
+# log4j.appender.jpgExtractor.filter.LevelMin=DEBUG
+# log4j.appender.jpgExtractor.filter.LevelMax=ERROR
+\end{verbatim}
+\par 这表示将package(org.jpgExtractor)下的Log输出到名为jpgExtractor的LogAppender中。Namenode（JobTracker）和Datanode（TaskTracker）下的log4j.properties文件都必须按如上所说进行修改，修改完后重启整个Hadoop。
+\par 当一个作业执行时，由Namenode（JobTracker）执行的那部分代码（如InputFormat中的getSplits函数和isSplitable函数），其输出结果保存在"/tmp/log4j.log"文件中，而由Datanode（TaskTracker）执行的那部分代码，其输出结果没有放在"/tmp/log4j.log"文件里，而是输出到了\$\{HADOOP\_HOME\}/logs/userlogs/\$\{jobId\}/\$\{TaskAttemptId\}/stdlog文件中。
+\par 修改了的配置文件只对JobTracker，TaskTracker等MapReduce框架有效，而对执行MapTask，ReduceTask的Java进程无效，因为当一个Map或Reduce任务执行时，MapReduce框架重新给运行任务的JVM设置了参数，这些参数不再调用Hadoop配置目录下的log4j.properties了。
+\par 执行任务的JVM参数被重新设置，至于Hadoop是怎么设置的，查阅Hadoop源码中的log4j.properties配置文件，发现TLA这个\textsl{TaskLogAppender}，其描述如下：
+\begin{verbatim}
+log4j.appender.TLA=org.apache.hadoop.mapred.TaskLogAppender
+log4j.appender.TLA.taskId=${hadoop.tasklog.taskid}
+log4j.appender.TLA.isCleanup=${hadoop.tasklog.iscleanup}
+log4j.appender.TLA.totalLogFileSize=${hadoop.tasklog.totalLogFileSize}
+log4j.appender.TLA.layout=org.apache.log4j.PatternLayout
+log4j.appender.TLA.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n
+\end{verbatim}
+然后通过\textsl{find ./ -iname '*.java' |xargs grep -n 'TLA'}命令，找到如下代码：
+\begin{verbatim}
+env.put("HADOOP_ROOT_LOGGER","INFO,TLA");
+\end{verbatim}
+\par MapReduce框架在开启执行MapTask或ReduceTask的JVM时，修改了\textsl{HADOOP\_ROOT\_LOGGER}，从而将rootLogger的输出重定向到syslog文件中。为了实现在Mapper和Reducer中输出Log信息到本地文件系统或其它地方时，继承Mapper或Reducer的setup(context)函数，在其中添加如下代码：
+\begin{verbatim}
+protected void setup(Context context) throws IOException,InterruptedException{
+  FileAppender  fa = new FileAppender();
+  fa.setName("FileLogger");
+  fa.setFile("/tmp/liubo.log");
+  fa.setLayout(new PatternLayout("%d %-5p [%c{1}] %m%n"));
+  fa.setThreshold(Level.INFO);
+  fa.setAppend(true);
+  fa.activateOptions();
+  Logger.getRootLogger().getLoggerRepository().resetConfiguration();
+  Logger.getRootLogger().addAppender(fa);
+}
+\end{verbatim}
+\par 这种方式可以输出用户作业的日志到本地文件("/tmp/liubo.log")，但对OutputCommiter的日志输出无效，因为如上代码只能修改Mapper和Reducer，而无法修改执行SetupTask和CleanupTask的JVM的默认设置，OutputCommiter执行的任务包括：
+\begin{enumerate}[(1)]
+\item JobSetupTask,当作业开始时，在hdfs上建立作业临时目录，调用OutputCommitter的setupJob接口。
+\item TaskCleanupTask,当构成作业的某个Task失败时，调用OutputCommitter的abortTask接口。
+\item JobCleanupTask,当作业结束时，如果作业失败，调用OutputCommitter的abortJob接口，如果作业成功，调用OutputCommitter的commitJob接口。
+\end{enumerate}
+\subsection{Job的提交过程}
+在org.apache.hadoop.mapreduce.Job类中，submit函数将作业提交给MapReduce框架执行，其由waitForCompletion函数调用。
+Submit函数 --> setUseNewAPI(设置使用新的API函数) --> 生成JobClient对象（JobClient创建与JobTracker的RPC协议）
+现在需要搞清楚的是Job的提交过程，
+
+
+

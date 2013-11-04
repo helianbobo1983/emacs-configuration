@@ -1,0 +1,19 @@
+读《An Application for Processing Large and Non-Uniform Media Objects on MapReduce-Based Clusters》这篇pdf，其中描述了如何将大的视频文件切割成小片，以供Mapper处理。
+
+使用input format, record reader, compression codec来实现对视频的MapReduce处理，how？
+
+(1)Due to dependencies to native libraries, the video processing application demands the installation of FFmpeg on every cluster node.
+(2)For handling media streams from Java, we utilize the Xuggler open-source library, which provides a very stable wrapper around FFmpeg’s libav libaries. 
+(3)It is however critical to consider if a file format supports splitting for processing it with MapReduce. 
+(4)Hadoop utilizes a specific interface called SplittableCompressionCodec to denote codecs that support the compression/decompression of streams at arbitrary positions,for example determined by split borders.
+(5)We have implemented AV Splittable Compression Codec, a class that supports the compression, decompression, and splitting of audiovisual files.
+(6)This is done by utilizing a key frame index that is automatically generated from the container prior to the execution.
+
+
+
+
+
+
+
+
+

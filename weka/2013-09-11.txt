@@ -1,0 +1,6 @@
+一,安装fuse-dfs,有若干个项目,contrib/fuse-dfs,fuse-j-hdfs,hdfs-fuse,webdav,mapR,HDFS NFS Proxy.本文使用的是contrib/fuse-dfs
+安装要求:(1)Hadoop with compiled libhdfs.so(2)Linux kernel > 2.6.9 with fuse,或者安装了Fuse 2.7.x, 2.8.x的Linux操作系统(3) modprobe fuse to load it(4)fuse-dfs executable (see below)(5)fuse_dfs_wrapper.sh installed in /bin or other appropriate location (see below) 
+fuse是一个Linux内核模块，版本要求为2.7.X,或2.8.X，安装好后，用modprobe加载它;libhdfs是hadoop为C/C++访问分布式文件系统提供了JNI接口，libhdfs为C/C++应用程序提供了较为丰富的API函数，可以直接调用，而不需要在本地生成DLL文件，再由JAVA程序加载。
+libhdfs.so一般已经包含在hadoop包中，在hadoop-2.0.5-alpha中，也有libhdfs.so这个库。
+
+

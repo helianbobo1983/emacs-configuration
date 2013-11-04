@@ -1,0 +1,78 @@
+开发工作中，由于有时需要通过ssh登录远程服务器上去，每次都要输入密码，密码很难记，感觉很麻烦，于是通过设置，让ssh自动登录远程服务器上去，从而免去了每次都要输入密码的困扰。 
+
+系统说明： 
+本地机器：Ubuntu
+远程机器：Ubuntu
+
+步骤： 
+A.本地机器需要做的修改工作 
+
+1.通过ssh-keygen产生RSA公私密钥对 
+#ssh-keygen 
+一路敲回车下去，最后在~/.ssh文件夹下生成id_rsa和id_rsa.pub两个文件 
+然后改一下 .ssh 目录的权限，使用命令 "chmod 755 ~/.ssh" 
+代码:   [user1@rh user1]$ chmod 755 ~/.ssh 
+
+2.在~/.ssh文件夹下创建config文件 
+具体如下： 
+
+Host abc //服务器别名 
+HostName xxx.xxx.xxx.xxx //服务器的ip地址 
+User root  // 
+Port 22  //ssh服务端口 
+
+注：如果需要对远程多台机子配置，则config文本文件里面再添加一条记录，格式和上面的一样。 
+
+3.用 ssh-copy-id 把公钥复制到远程主机上
+ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.0.3
+
+或者用
+scp ~/.ssh/id_rsa.pub root@192.168.0.3:/tmp
+拷贝到远程主机的/tmp目录下。
+
+B.远程机器需要做的修改工作 
+
+1.打开/etc/ssh/sshd_config这个文件 
+将下面几行前面“#”注释取掉 
+RSAAuthentication yes 
+PubkeyAuthentication yes 
+AuthorizedKeysFile .ssh/authorized_keys 
+
+2.在用户根目录下创建.ssh文件夹，如果已经有了就不用创建了.具体路径为(~/.ssh) 
+# cd ~/.ssh 
+在.ssh文件夹下建立authorized_keys文件，记住authorized_keys是文件，不是文件夹。 
+将先前客户端上传id_rsa.pub文件中的内容拷贝粘贴到authorized_keys中去， 
+然后保存authorized_keys。 
+然后输入 ：chmod 600 authorized_keys
+3.重启ssh服务命令 
+#service sshd restart 
+
+C.回到本机机器linux客户端进行测试 
+
+在终端中敲入命令 
+
+# ssh abc //注abc 是config文件中配置的服务器别名 
+
+就直接进入远程服务器了,而不用再次输入密码.
+
+备注：这一步如果出现bad owners错误时 需要改名.ssh文件夹和里面文件权限才行 
+具体命令如下： 
+#chmod 600 ~/.ssh 
+#chmod go+rwx ~/.ssh/*
+HowTo: Restart SSH Service under Linux / UNIX
+CentOS / RHEL / Fedora / Redhat Linux Restart SSH
+
+# /etc/init.d/sshd restart
+OR
+# service sshd restart
+Debian / Ubuntu Linux Restart SSH
+
+# /etc/init.d/ssh restart
+OR
+# service ssh restart
+FreeBSD Restart SSH
+
+# /etc/rc.d/sshd restart
+UNIX Restart SSH
+
+# kill -HUP `cat /var/run/sshd.pid`
