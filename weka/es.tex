@@ -189,3 +189,13 @@ curl -XPUT 'http://namenode:9200/hivetest/?pretty' -d '{
     }
 }'
 \end{verbatim}
+\par 但是上述设置性能很低下，也不知为什么？直接使用，即调整刷新间隔：
+\begin{verbatim}
+curl -XPUT 'http://namenode:9200/hivetest/?pretty' -d '{
+    "settings" : {
+       "index" : {
+         "refresh_interval" : "30s"
+        }
+    }
+}'
+\end{verbatim}
