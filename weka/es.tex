@@ -36,7 +36,7 @@ mappings: {
 \par The search analyzer is a little trickier to understand, but crucial to getting good relevance. Imagine querying for “Race”. We want that query to match “race”, “races” and “racecar”. When searching, we want to make sure ES eventually searches with the token “race”. The full\_name analyzer will give us the needed token to search with.
 \par If, however, we used the partial\_name nGram analyzer, we would generate a list of nGrams as our search query. The search query “Race” would turn into ["ra", "rac", "race"].Those tokens are then used to search the index. As you might guess, “ra” and “rac” will match a lot of things you don’t want, such as “racket” or “ratify” or “rapport”.
 \par So specifying different index and search analyzers is critical when working with things like ngrams. Make sure you always double check what you expect to query ES with…and what is actually being passed to ES.
-\subsection{depth into ElasticSearch}
+\subsection{Depth into ElasticSearch}
 \par 当使用如下命令搜索时：
 \begin{verbatim}
 curl -XPOST "http://namenode:9200/_search" -d'
@@ -168,7 +168,6 @@ curl -XPUT 'localhost:9200/_river/jiangsu/_meta' -d '{
 \item 索引（index）：主要是索引数据和删除数据操作（默认是cached类型）;
 \item 搜索（search）：主要是获取，统计和搜索操作（默认是cached类型）;
 \item 批量操作（bulk）：对索引的批量操作，尚且不清楚它是不是原子性的，如果是原子的，则放在MapReduce里是没有问题的;
-
 \item 更新（refresh）：主要是更新操作，如当一个文档被索引后，何时能够通过搜索看到该文档;
 \end{itemize}
 \par 在生成索引的过程中，需要修改如下配置参数：
