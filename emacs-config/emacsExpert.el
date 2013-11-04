@@ -1,4 +1,5 @@
-;;Last Modified: 2013-11-03 23:42:42.
+;;Last Modified: 2013-11-04 10:24:03.
+
 (add-hook  'write-file-hooks  (lambda ()  (set-lastmodified-tag)))
 (defun set-lastmodified-tag ()  (interactive) 
   (let ((tostr (concat ";;Last Modified: " 
@@ -73,15 +74,13 @@
 	    (mapcar 'byte-compile-lisp-file 
 		    '(".emacs" "emacs-config/\\([a-z A-Z]\\)*.el"))
 	    ))
+
 ;; (mapc (lambda (mode)
 ;; 	(add-hook 'LaTeX-mode-hook mode))
 ;;       (list 'auto-fill-mode
 ;;             'LaTeX-math-mode
 ;;             'turn-on-reftex
 ;;             'linum-mode))
-
-
-
 ;; (add-hook 'LaTeX-mode-hook
 ;;           (lambda ()
 ;;             (setq TeX-auto-untabify t     ; remove all tabs before saving
@@ -100,7 +99,7 @@
 (defun insert-paragraph ()
   "insert '\par' when no this ,else delete it"
   (interactive)
-  (save-buffer
+  (save-current-buffer
     (beginning-of-line)
     (if (re-search-forward "^ *\\\\par *" (line-end-position) t)
 	(let ((myStr (thing-at-point 'line)))
@@ -149,8 +148,4 @@
       ("[^\\]_" . font-lock-warning-face)
 ))))
 (font-lock-add-keywords 'emacs-lisp-mode '("[(]" "[)]"))
-;; \par:
-;; \par
-;; and
-
 ;;("\\<\\(and\\|or\\|not\\)\\>" . font-lock-keyword-face)

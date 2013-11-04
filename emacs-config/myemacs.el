@@ -1,6 +1,4 @@
-;;Last Modified: 2013-11-03 17:59:21.
-
-
+;;Last Modified: 2013-11-04 10:25:28.
 ;;全屏函数。
 (defun my-fullscreen ()
   (interactive)
