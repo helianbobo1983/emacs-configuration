@@ -170,7 +170,7 @@ curl -XPUT 'localhost:9200/_river/jiangsu/_meta' -d '{
 \item 批量操作（bulk）：对索引的批量操作，尚且不清楚它是不是原子性的，如果是原子的，则放在MapReduce里是没有问题的;
 \item 更新（refresh）：主要是更新操作，如当一个文档被索引后，何时能够通过搜索看到该文档;
 \end{itemize}
-\par 在生成索引的过程中，需要修改如下配置参数：
+\par 在建立索引（index相当于数据库，type相当于数据库中的表）的过程中，需要修改如下配置参数：
 \begin{itemize}
 \item index.store.type: mmapfs.因为内存映射文件机制能更好地利用OS缓存;
 \item indices.memory.index\_buffer\_size: 30\% 默认值为10\%，表示10\%的内存作为indexing buffer;
@@ -189,13 +189,23 @@ curl -XPUT 'http://namenode:9200/hivetest/?pretty' -d '{
     }
 }'
 \end{verbatim}
-\par 但是上述设置性能很低下，也不知为什么？直接使用，即调整刷新间隔：
+\par 但上述设置性能低下，也不知why？ES索引的过程相对Lucene的索引过程多了分布式数据的扩展，而ES主要是用tranlog进行各节点间的数据平衡，因此设置"index.translog.flush\_threshold\_ops"为"100000"，意思是当tranlog数据达到多少条进行一次平衡操作，默认为5000，而这个过程相对而言是比较浪费资源的，必要时可以将这个值设为-1关闭，进而手动进行tranlog平衡。"refresh\_interval"是刷新频率，设置为30s是指索引在生命周期内定时刷新，一但有数据进来就在Lucene里面commit，因此其值设置大些可以提高索引效率。另外，如果有副本存在，数据也会马上同步到副本中去，因此在索引过程中，将副本设为0，待索引完成后将副本个数改回来。
 \begin{verbatim}
-curl -XPUT 'http://namenode:9200/hivetest/?pretty' -d '{
-    "settings" : {
-       "index" : {
-         "refresh_interval" : "30s"
-        }
-    }
+curl -XPUT 'namenode:9200/hivetest/' #新建一个名为hivetest的索引
+curl -XPOST 'namenode:9200/hivetest/_close' #关闭索引，为修改参数做准备
+curl -XPUT 'namenode:9200/hivetest/_settings?pretty' -d '{
+   "index" : {
+      "refresh_interval" : "30s",
+      "index.translog.flush_threshold_ops": "100000",
+      "number_of_replicas" : 0
+   }
 }'
+curl -XPOST 'namenode:9200/hivetest/_open'
 \end{verbatim}
+\par Linux主机上硬盘空间有限，经常发现root目录下已没有可利用磁盘空间，为此，将ES的日志和数据输出目录设置在/home目录下,修改config目录下的elasticsearch.yml文件中的选项，其中path.data为索引文件存放目录，path.work为临时文件存放目录，path.logs为日志文件存放目录。
+\begin{verbatim}
+path.data: /home/elasticSearch/data
+path.work: /home/elasticSearch/work
+path.logs: /home/elasticSearch/logs
+\end{verbatim}
+
