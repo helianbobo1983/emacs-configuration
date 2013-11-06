@@ -208,4 +208,15 @@ path.data: /home/elasticSearch/data
 path.work: /home/elasticSearch/work
 path.logs: /home/elasticSearch/logs
 \end{verbatim}
-
+\subsection{Lucene文件结构}
+\par Files and detailed format:
+\begin{itemize}
+\item .tim: Term Dictionary
+\item .tip: Term Index
+\item .doc: Frequencies and  Skip Data
+\item .pos: Positions
+\item .pay: Payloads and Offsets
+\end{itemize}
+\par The .tim file contains the list of terms in each field along with per-term statistics (such as docfreq) and pointers to the frequencies, positions, payload and skip data in the .doc, .pos, and .pay files.
+\par The .doc file contains the lists of documents which contain each term, along with the frequency of the term in that document.
+\par The .pos file contains the lists of positions that each term occurs at within documents. It also sometimes stores part of payloads and offsets for speedup.TermPositions are order by term (terms are implicit, from the term dictionary), and position values for each term document pair are incremental, and ordered by document number.
