@@ -24,10 +24,9 @@ OutputFormat类是Hadoop Map Reduce框架中的基础类之一。该类主要用
 \item OutputFormat，包含了OutputCommitter，RecordWriter<KEYOUT,VALUEOUT>等信息
 \item StatusReporter,JobID，TaskAttemptID等信息
 \end{itemize}
-\par Context类包括了任务执行时需要的上下文信息, 其中reader负责给Mapper提供K/V对，writer负责写入Mapper或Reducer的计算结果，committer负责Task的一些清理工作，可以更多地与MapReduce执行交互，InputSplit定义了MapTask的输入数据源。
-\par OutputCollector应该是在旧的API中使用比较多，对RecordReader的调用，runNewMapper调用的是\\
-\textbf{inputFormat.createRecordReader(split,taskContext);}而runOldMapper调用的是\\
-\textbf{job.getInputFormat().getRecordReader(split,job,reporter)}。
+\par Context类包括了任务执行时需要的上下文信息, 其中reader负责给Mapper提供K/V对，writer负责写入Mapper或Reducer的计算结果，committer负责Task的一些清理工作，可以更多地与MapReduce执行交互，InputSplit定义了MapTask的输入数据源。对RecordReader的调用\\
+\textbf{runNewMapper-->inputFormat.createRecordReader(split,taskContext);}\\
+\textbf{runOldMapper-->job.getInputFormat().getRecordReader(split,job,reporter)}
 \subsection{对RecordWriter的处理}
 MapTask和ReduceTask都可能会调用RecordWriter，这个输出会写到哪里去呢？如果不存在Reduce任务，那么Map任务的输出当然是由RecordWriter负责写入了。查阅MapTask类的源码，有如下代码：
 \begin{verbatim}
