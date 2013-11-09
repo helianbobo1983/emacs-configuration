@@ -1,27 +1,26 @@
+(add-to-list 'load-path "./emacs-config/jdee/cedet-1.0pre7/common")
+(add-to-list 'load-path "./emacs-config/jdee/elib-1.0")
+(load "cedet.el" nil t t)
 (setq debug-on-error t)
-(add-to-list 'load-path (expand-file-name "~/emacs-config/jdee/jdee-2.4.0.1/lisp"))
-(add-to-list 'load-path (expand-file-name "~/emacs-config/jdee/cedet-1.0pre7/common"))
-(load-file (expand-file-name "~/emacs-config/jdee/cedet-1.0pre7/common/cedet.el"))
-(add-to-list 'load-path (expand-file-name "~/emacs-config/jdee/elib-1.0"))
 ;; If you want Emacs to defer loading the JDE until you open a 
 ;; Java file, edit the following line
+
+(expand-file-name "./emacs-config/jdee/jdee-2.4.0.1/lisp")
 (setq defer-loading-jde t)
 (if defer-loading-jde
     (progn
+      (add-to-list 'load-path (expand-file-name "./emacs-config/jdee/jdee-2.4.0.1/lisp"))
       (autoload 'jde-mode "jde" "JDE mode." t)
       (setq auto-mode-alist
 	    (append
 	     '(("\\.java\\'" . jde-mode))
 	     auto-mode-alist)))
-  (require 'jde))
+(require 'jde)  ) ;; defer loading jde.el
 
-
-;; Sets the basic indentation for Java source files
-;; to two spaces.
-(defun my-jde-mode-hook ()
-  (setq c-basic-offset 2))
-
-(add-hook 'jde-mode-hook 'my-jde-mode-hook)
+(add-hook 'jde-mode-hook 
+	  (lambda () (
+		      (setq c-basic-offset 2)
+		      )))
 
 ;; Include the following only if you want to run
 ;; bash as your shell.

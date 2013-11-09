@@ -1,6 +1,5 @@
-;;Last Modified: 2013-11-04 11:38:21.
-
-(add-hook  'write-file-hooks  (lambda ()  (set-lastmodified-tag)))
+;;Last Modified: 2013-11-09 23:28:58.
+(add-hook  'before-save-hook  (lambda ()  (set-lastmodified-tag)))
 (defun set-lastmodified-tag ()  (interactive) 
   (let ((tostr (concat ";;Last Modified: " 
 		       (format-time-string "%Y-%m-%d %T" (current-time)) ".")))
@@ -130,7 +129,7 @@
       (let ((str2 (thing-at-point 'line)))	
 	(insert ";; ") (message str2))
       ))
-)
+  )
 (add-hook 'emacs-lisp-mode-hook
 	  (lambda ()
 	    (define-key emacs-lisp-mode-map
@@ -142,11 +141,11 @@
 (re-search-forward "^\\(\\\\par\\):" nil t)
 
 (add-hook 'LaTeX-mode-hook
-  (lambda ()
-   (font-lock-add-keywords nil
-    '(("^\\(\\\\par\\)[ ]+" 1 font-lock-keyword-face)
-      ("[^\\]_" . font-lock-warning-face)
-))))
+	  (lambda ()
+	    (font-lock-add-keywords nil
+				    '(("^\\(\\\\par\\)[ ]+" 1 font-lock-keyword-face)
+				      ("[^\\]_" . font-lock-warning-face)
+				      ))))
 (font-lock-add-keywords 'emacs-lisp-mode '("[(]" "[)]"))
 ;;("\\<\\(and\\|or\\|not\\)\\>" . font-lock-keyword-face)
 (setq vc-handled-backends nil);;禁止在emacs中使用版本设置

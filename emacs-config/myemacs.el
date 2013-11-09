@@ -1,4 +1,4 @@
-;;Last Modified: 2013-11-04 10:25:28.
+;;Last Modified: 2013-11-09 22:33:37.
 ;;全屏函数。
 (defun my-fullscreen ()
   (interactive)
@@ -86,7 +86,7 @@
 (tool-bar-mode nil);;关闭工具栏,turn off tool bar
 (menu-bar-mode nil);;turn off menu bar
 (scroll-bar-mode nil);;关闭滚动条栏,turn off scroll bar
-(setq-default line-spacing 4);;设置两行间的额外间距,单位为像素.
+(setq-default line-spacing 4);;设置两行间的额外间距,单位为像素
 
 (set-face-attribute 'default nil :font "Consolas-20")
 (dolist (charset '(kana han symbol cjk-misc bopomofo))
