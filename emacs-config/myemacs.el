@@ -1,4 +1,4 @@
-;;Last Modified: 2013-11-09 22:33:37.
+;;Last Modified: 2013-11-10 13:48:00.
 ;;全屏函数。
 (defun my-fullscreen ()
   (interactive)
@@ -41,7 +41,7 @@
 
 (setq column-number-mode t);;display column number in minibuffer
 (setq line-number-mode t);;display row number in minibuffer
-(linum-mode nil)
+;;(linum-mode nil)
 (global-set-key (kbd "C-o") 'insert-two-percentages)
 
 
